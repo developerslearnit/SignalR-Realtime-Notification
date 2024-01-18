@@ -1,0 +1,68 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="wrapper">
+    <div class="row">
+        <div class="col-auto">
+            <input class="form-control" type="file" id="formFile">
+        </div>
+        <div class="col-auto">
+            <button type="submit" id="btnSubmit" class="btn btn-primary mb-3">Upload</button>
+        </div>
+    </div>
+    <div style="width:60%;height:500px;max-height:500px;" class="card">
+        <div id="progress" class="card-body bg-black text-light" style="width:100%;height:500px;max-height:500px;overflow-y:scroll">
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/excelInfo")
+            .build();
+
+        connection.on("ProgressChanged", (message) => {
+
+            $("#progress").append(message);
+            $("#progress").animate(
+                {
+                    scrollTop: 10000000,
+                },
+                500
+            );
+        });
+
+        connection.start().then(() => {
+            console.log("Connected to SignalR hub");
+
+        }).catch((err) => console.error(err));
+
+        $(document).ready(function () {
+
+            $("#btnSubmit").click(function (e) {
+                e.preventDefault();
+                var formData = new FormData();
+                formData.append('file', $('#formFile')[0].files[0]);
+                $.ajax({
+                    type: "POST",
+                    url: '/home/UploadExcel',
+                    data: formData,
+                    processData: false, // tell jQuery not to process the data
+                    contentType: false, // tell jQuery not to set contentType
+                    success: function (data) {
+                        console.log(data);
+                        // $('#myImg').attr('src', data);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                    }
+                })
+            })
+
+
+        })
+
+    </script>
+}
